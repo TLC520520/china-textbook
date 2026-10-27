@@ -6,7 +6,7 @@
 
 ## 打开方式
 
-- 在线使用：**https://tlc520520.github.io/**
+- 在线使用：**https://tlc520520.github.io/china-textbook/**
 - 本地使用：把 `index.html` 下载到电脑，双击用浏览器打开
 
 手机上用：浏览器打开上面的链接 → 分享 → 添加到主屏幕，就和 App 一样了。
