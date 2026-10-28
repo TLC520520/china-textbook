@@ -250,6 +250,30 @@ svg{display:block}
 .wrong-info span{font-size:11.5px;color:var(--muted)}
 .mini-btn{padding:7px 12px;border-radius:9px;font-size:12.5px;font-weight:600;background:var(--green-soft);color:var(--green);min-height:38px;flex:0 0 auto}
 .mini-btn:hover{background:#D3E8E1}
+/* 错题专项重练：入口条 + 练习页模式提示 */
+.wrong-tools{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 15px;border-radius:13px;
+  background:var(--gold-soft);border:1px solid #EFDFC0;margin-bottom:12px;
+}
+.wrong-tools .wt-txt{flex:1;min-width:150px;font-size:13px;color:var(--ink2)}
+.wrong-tools .wt-txt b{color:var(--red)}
+.wrong-tools .btn{background:var(--card);border:1px solid #E6D3AC;color:var(--ink);font-size:13px;min-height:40px;padding:8px 14px}
+.wrong-tools .btn:hover{background:#FFFDF9}
+.quiz-mode{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;
+  padding:10px 14px;border-radius:12px;background:var(--gold-soft);border:1px solid #EFDFC0;
+  font-size:12.5px;color:var(--ink2);
+}
+.quiz-mode .qm-tag{
+  font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:20px;
+  background:var(--gold);color:#fff;flex:0 0 auto;
+}
+.quiz-mode .qm-txt{flex:1;min-width:120px}
+.quiz-mode .qm-exit{
+  font-size:12.5px;font-weight:600;color:var(--blue);padding:6px 10px;border-radius:9px;
+  background:var(--card);border:1px solid var(--line);min-height:36px;
+}
+.quiz-mode .qm-exit:hover{background:#FFFDF9}
 .kb-item{
   padding:14px 16px;border-radius:13px;background:var(--card);border:1px solid var(--line);
   margin-bottom:9px;box-shadow:var(--shadow);cursor:pointer;transition:.15s;
@@ -1064,6 +1088,8 @@ function renderLevels(){
 
 /* --- 组词练习 --- */
 var quizSession = null;
+var quizMode = 'daily';     // daily = 今日练习 | wrong = 错题专项
+var wrongQuizChars = [];    // 进入错题专项时锁定的字表，答题过程中错题本变化不会打断本轮
 var currentView = 'learn';
 
 function normPy(s){
@@ -1139,14 +1165,46 @@ function newQuiz(chars){
 }
 
 function ensureQuiz(){
-  var plan = ensureTodayPlan();
-  var wrongs = wrongArr().slice(0,3).map(function(w){ return w.c; });
-  var chars = plan.slice();
-  for(var i=0;i<wrongs.length;i++){ if(chars.indexOf(wrongs[i]) < 0) chars.push(wrongs[i]); }
-  var key = chars.join(',');
+  // 错题专项：字表在进入时锁定，答题过程中错题本被扣减也不会重排本轮
+  if(quizMode === 'wrong' && !wrongQuizChars.length){ quizMode = 'daily'; }
+  var chars;
+  if(quizMode === 'wrong'){
+    chars = wrongQuizChars.slice();
+  }else{
+    var plan = ensureTodayPlan();
+    var wrongs = wrongArr().slice(0,3).map(function(w){ return w.c; });
+    chars = plan.slice();
+    for(var i=0;i<wrongs.length;i++){ if(chars.indexOf(wrongs[i]) < 0) chars.push(wrongs[i]); }
+  }
+  // key 里带上模式，切换模式时强制重开一组
+  var key = quizMode + '|' + chars.join(',');
   if(!quizSession || quizSession.key !== key || !quizSession.qs.length){
     quizSession = newQuiz(chars);
+    quizSession.key = key;
   }
+}
+
+// 进入错题专项重练（错题本 → 练习页）
+function startWrongQuiz(){
+  var list = wrongArr();
+  if(!list.length){ toast('错题本是空的，先去练习几组吧'); return; }
+  // 错得最多的优先，最多 12 个，避免一轮太长
+  var ranked = list.slice().sort(function(a,b){ return b.count - a.count || b.ts - a.ts; });
+  var chars = ranked.slice(0, 12).map(function(w){ return w.c; });
+  quizMode = 'wrong';
+  wrongQuizChars = chars;
+  quizSession = null;
+  switchView('practice');
+  toast('已生成 ' + chars.length + ' 个字的错题专项练习');
+}
+
+// 退出错题专项，回到每日练习
+function exitWrongQuiz(silent){
+  quizMode = 'daily';
+  wrongQuizChars = [];
+  quizSession = null;
+  refreshAll();
+  if(!silent) toast('已切回每日练习');
 }
 
 function renderQuiz(){
@@ -1154,14 +1212,21 @@ function renderQuiz(){
   if(!wrap) return;
   ensureQuiz();
   var s = quizSession;
+  var modeBar = quizMode === 'wrong'
+    ? '<div class="quiz-mode">' +
+        '<span class="qm-tag">错题专项</span>' +
+        '<span class="qm-txt">本轮只练错题本里的字，答对会抵扣错误次数，全对完错题自动消失</span>' +
+        '<button class="qm-exit" data-quiz-mode="daily">回到每日练习</button>' +
+      '</div>'
+    : '';
   if(!s.qs.length){
-    wrap.innerHTML = emptyHTML('暂时没有可练习的字', '先到「今日学字」学几个字，再回来练习');
+    wrap.innerHTML = modeBar + emptyHTML('暂时没有可练习的字', '先到「今日学字」学几个字，再回来练习');
     return;
   }
   if(s.done){
     var rate = Math.round(s.right / s.qs.length * 100);
     var words = rate >= 80 ? '稳了，这些字你记得很牢' : (rate >= 60 ? '还不错，错的字已经收进错题本' : '别急，错的字多看看象形来历就好记了');
-    wrap.innerHTML =
+    wrap.innerHTML = modeBar +
       '<div class="empty" style="padding:32px 20px">' +
         '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>' +
         '<div style="font-size:19px;color:var(--ink);font-weight:600;margin-bottom:6px">本轮完成</div>' +
@@ -1195,7 +1260,7 @@ function renderQuiz(){
       '<b>' + (ok ? '答对了 +5 分' : '答错了，已收进错题本') + '</b><br>' + q.tip + '</div>';
   }
 
-  wrap.innerHTML =
+  wrap.innerHTML = modeBar +
     '<div class="qhead">' +
       '<span class="qtype">' + q.type + '</span>' +
       '<span class="qstep">第 ' + (s.idx+1) + ' / ' + s.qs.length + ' 题 · 已答对 ' + s.right + '</span>' +
@@ -1231,12 +1296,20 @@ function renderKB(){
     }
   }
   if(kbTab === 'wrong'){
-    var items = wrongArr().filter(function(w){ return matchChar(q, w.c); });
+    var allWrong = wrongArr();
+    var items = allWrong.filter(function(w){ return matchChar(q, w.c); });
+    var tools = allWrong.length
+      ? '<div class="wrong-tools">' +
+          '<span class="wt-txt">错题本共 <b>' + allWrong.length + '</b> 个字' +
+            (allWrong.length > 12 ? '，专项重练每轮取错得最多的 12 个' : '') + '</span>' +
+          '<button class="btn" data-wrong-quiz="1">开始专项重练</button>' +
+        '</div>'
+      : '';
     if(!items.length){
-      list.innerHTML = emptyHTML(q ? '没有匹配的错题' : '错题本还是空的', q ? '换个字、拼音或部首试试' : '在组词练习里答错的字会自动收进来');
+      list.innerHTML = tools + emptyHTML(q ? '没有匹配的错题' : '错题本还是空的', q ? '换个字、拼音或部首试试' : '在组词练习里答错的字会自动收进来');
       return;
     }
-    list.innerHTML = items.map(function(w){
+    list.innerHTML = tools + items.map(function(w){
       var z = ZI[w.c] || {};
       return '<div class="wrong-item">' +
         '<div class="wrong-zi">' + w.c + '</div>' +
@@ -1414,6 +1487,15 @@ function skipQuiz(){
 }
 
 function retryQuiz(){
+  if(quizMode === 'wrong'){
+    var list = wrongArr().slice().sort(function(a,b){ return b.count - a.count || b.ts - a.ts; });
+    if(!list.length){
+      exitWrongQuiz(true);
+      toast('错题已经全部掌握，回到每日练习');
+      return;
+    }
+    wrongQuizChars = list.slice(0, 12).map(function(w){ return w.c; });
+  }
   quizSession = null;
   refreshAll();
 }
@@ -1648,6 +1730,10 @@ function bindEvents(){
 
     var rm = e.target.closest('[data-remove-wrong]');
     if(rm){ removeWrong(rm.getAttribute('data-remove-wrong')); return; }
+
+    // 错题专项重练：进入 / 退出
+    if(e.target.closest('[data-wrong-quiz]')){ startWrongQuiz(); return; }
+    if(e.target.closest('[data-quiz-mode]')){ exitWrongQuiz(false); return; }
 
     var mk = e.target.closest('.modal [data-mark]');
     if(mk){ markOne(mk.getAttribute('data-mark')); closeModal(); return; }
