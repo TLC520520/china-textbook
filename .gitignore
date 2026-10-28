@@ -1,0 +1,22 @@
+# ---- 系统 / 编辑器 ----
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ---- 本地临时文件与备份 ----
+*.tmp
+*.bak
+.tmp-*
+备份*.json
+学字台备份-*.json
+
+# ---- 令牌 / 密钥，绝不入库 ----
+.env
+.env.*
+.token.txt
+*.pem
+*.key

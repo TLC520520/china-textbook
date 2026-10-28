@@ -1,5 +1,10 @@
 # 每天学5个字 · 汉字启蒙工作台
 
+[![在线使用](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E4%BD%BF%E7%94%A8-tlc520520.github.io-B5442E?style=flat-square)](https://tlc520520.github.io/china-textbook/)
+[![单文件](https://img.shields.io/badge/%E5%8D%95%E6%96%87%E4%BB%B6-index.html-2E6B5E?style=flat-square)](index.html)
+[![零依赖](https://img.shields.io/badge/%E9%9B%B6%E4%BE%9D%E8%B5%96-%E6%97%A0%20CDN%20%C2%B7%20%E6%97%A0%E5%AD%97%E4%BD%93%E6%9C%8D%E5%8A%A1-C0913B?style=flat-square)](index.html)
+[![字库](https://img.shields.io/badge/%E5%AD%97%E5%BA%93-90%20%E4%B8%AA%E5%AD%97%20%C2%B7%206%20%E5%85%B3-3C6489?style=flat-square)](index.html)
+
 一个给小朋友（也适合任何零基础起步的人）用的汉字学习工作台。每天 5 个字，90 个字分 6 关，靠象形字卡、组词练习和闯关积分把字真正记住。
 
 纯静态单文件，不依赖任何框架、CDN 或字体服务，双击打开就能用，也可以部署到任何静态托管。
@@ -40,6 +45,7 @@
 ### 4. 错题知识
 
 - **错题本**：练习答错的字自动收录，记录错了几次、错在哪种题型；答对会逐步抵扣次数，错题熟了自动消失
+- **错题专项重练**：错题本顶部有「开始专项重练」，一键把错得最多的字（每轮最多 12 个）拉进练习页，只练这些字；答对同样抵扣错误次数，练完点「再来一组」按最新错题重新排，错题清空会自动切回每日练习
 - **全部字库**：90 个字全量检索，支持按**汉字 / 拼音 / 部首 / 词语**查（拼音不用带声调，输 `ri` 也能找到「日」）
 - 点任意一条打开知识卡，看完整的象形来历
 

@@ -1,0 +1,54 @@
+name: 功能建议
+description: 想加一个新功能、改一处交互，或者补充字库内容
+title: "[建议] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        这个项目刻意保持「单文件、零依赖」，所以不是所有功能都会被采纳——需要引入框架或外部服务的建议通常会放在讨论区。
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 属于哪一部分
+      options:
+        - 今日学字（字卡 / 翻面 / 进度）
+        - 组词练习（题型 / 答题）
+        - 闯关积分（关卡 / 奖励）
+        - 错题知识（错题本 / 字库检索）
+        - 数据备份（导出 / 导入）
+        - 界面与适配（移动端 / 无障碍）
+        - 字库内容（新增字 / 修正拼音释义）
+        - 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你遇到的不便
+      description: 先说场景和痛点，比直接说解决方案更有用
+      placeholder: 例如：孩子一次学了 8 个字，但今日计划固定 5 个，多出来的字第二天就找不到了
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: 你希望的改法
+      placeholder: 例如：允许在设置里把每日字数改成 3 / 5 / 8 三档
+    validations:
+      required: true
+
+  - type: textarea
+    id: alt
+    attributes:
+      label: 考虑过的替代方案（可选）
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我搜过现有 Issue，没有找到相同的建议
+          required: true
